@@ -6,6 +6,19 @@ const fmt=(sec)=>{sec=Math.max(0,Math.floor(sec||0));const m=Math.floor(sec/60),
 const streakBadge=$('#streakBadge'), progressBadge=$('#progressBadge'), challengeBadge=$('#challengeBadge');
 const remindTime=$('#remindTime'), enableNotify=$('#enableNotify'), saveReminder=$('#saveReminder');
 
+
+// Tabs: robust switcher
+$$('.tab').forEach(t=>t.addEventListener('click',()=>{
+  try {
+    $$('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const name=t.dataset.tab;
+    $$('.pane').forEach(p=>p.classList.remove('active'));
+    const pane=$('#pane-'+name); if(pane) pane.classList.add('active');
+    if(name==='words'){ ensureTodayWords(false).catch(e=>console.error('words ensure failed', e)); }
+  } catch(e){ console.error('tab switch error', e); }
+}));
+
 // Player
 const audio=$('#player'), video=$('#playerVideo'); let activeEl=audio;
 const playPause=$('#playPause'), rateSel=$('#rate'), currentEl=$('#current'), durationEl=$('#duration'), statusEl=$('#status'), lessonTitle=$('#lessonTitle');
@@ -53,7 +66,7 @@ async function loadWords(){ if(WORDS.length) return true; try{ const res=await f
 function dayKey(){ return new Date().toISOString().slice(0,10); } function getWProg(){ return JSON.parse(localStorage.getItem('otter:words:progress')||'{}'); } function setWProg(p){ localStorage.setItem('otter:words:progress', JSON.stringify(p)); }
 function pickToday(force=false){ const p=getWProg(); const today=dayKey(); p.days=p.days||{}; if(!force && p.days[today]?.items?.length){ setWProg(p); return p.days[today].items; } const learned=new Set(p.learned||[]); let pool=WORDS.map((w,i)=>({...w,idx:i})).filter(w=>!learned.has(w.idx)); if(recycleChk?.checked && pool.length<3){ pool=WORDS.map((w,i)=>({...w,idx:i})); } const chosen=[]; for(let i=0;i<3&&pool.length;i++){ const j=Math.floor(Math.random()*pool.length); chosen.push(pool.splice(j,1)[0].idx); } p.days[today]={items:chosen,done:[]}; setWProg(p); return chosen; }
 function renderToday(){ const p=getWProg(); const today=dayKey(); const set=p.days?.[today]||{items:[],done:[]}; wordsWrap.innerHTML=''; if(!set.items.length){ wordsWrap.textContent='오늘의 단어가 없습니다. 버튼을 눌러 새로 뽑으세요.'; return; } set.items.forEach(idx=>{ const w=WORDS[idx]||{word:'(없음)',meaning:''}; const done=(set.done||[]).includes(idx); const card=document.createElement('div'); card.className='wordcard'; card.innerHTML=`<div class="top"><strong>${w.word}</strong><label class="switch"><input type="checkbox" ${done?'checked':''}><span>완료</span></label></div><div class="mean">${w.meaning||'(의미 추가 가능)'}</div><div class="actions"><button class="btn pill ghost edit">뜻 편집</button></div>`; const chk=card.querySelector('input[type=checkbox]'); chk.addEventListener('change',()=>{ const p2=getWProg(); const d=(p2.days[today].done||[]); if(chk.checked){ if(!d.includes(idx)) d.push(idx);} else { const k=d.indexOf(idx); if(k>=0) d.splice(k,1);} p2.days[today].done=d; if(d.length>=3){ const L=new Set(p2.learned||[]); set.items.forEach(i=>L.add(i)); p2.learned=[...L]; } setWProg(p2); }); card.querySelector('.edit').addEventListener('click',()=>{ const nv=prompt('뜻을 입력하세요', w.meaning||''); if(nv!=null){ WORDS[idx].meaning=nv; card.querySelector('.mean').textContent=nv||'(의미 추가 가능)'; const ov=JSON.parse(localStorage.getItem('otter:words:overrides')||'{}'); ov[idx]=nv; localStorage.setItem('otter:words:overrides', JSON.stringify(ov)); } }); wordsWrap.appendChild(card); }); }
-async function ensureTodayWords(force=false){ const ok=await loadWords(); pickToday(force); renderToday(); if(!ok){ statusEl.textContent='단어 데이터 로드 실패 → 최소 세트 사용'; setTimeout(()=>statusEl.textContent='',3000);} }
+async function ensureTodayWords(force=false){ try{ const ok=await loadWords(); pickToday(force); renderToday(); if(!ok){ statusEl.textContent='단어 데이터 로드 실패 → 최소 세트 사용'; setTimeout(()=>statusEl.textContent='',3000);} } catch(e){ console.error('ensureTodayWords', e); statusEl.textContent='단어 로드 중 오류'; setTimeout(()=>statusEl.textContent='',3000);} }
 ensureTodayWords(false); todayWordsBtn?.addEventListener('click', ()=>ensureTodayWords(true));
 wordReviewBtn?.addEventListener('click', ()=>{ const p=getWProg(); const L=p.learned||[]; wordReviewEl.innerHTML='<h4>배운 단어 리뷰</h4>'+ (L.length?'':'<p class="hint">아직 완료한 단어가 없어요.</p>'); const ov=JSON.parse(localStorage.getItem('otter:words:overrides')||'{}'); L.slice().reverse().forEach(idx=>{ const w=WORDS[idx]||{word:'',meaning:''}; const meaning=ov[idx]??w.meaning; const p=document.createElement('p'); p.innerHTML=`<strong>${w.word}</strong> — ${meaning||'(의미 없음)'}`; wordReviewEl.appendChild(p); }); wordReviewEl.classList.toggle('hidden'); });
 
