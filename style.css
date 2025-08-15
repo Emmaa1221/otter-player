@@ -1,38 +1,11 @@
-/* Minimal but cute UI */ 
-:root{--bg:#FDF7F2;--card:#FFFFFF;--ink:#2E2A27;--muted:#8B857F;--primary:#FFB8C6;--primary-ink:#5A3F46;--shadow:0 6px 18px rgba(30,10,20,.08)}
-*{box-sizing:border-box} body{margin:0;font-family:ui-rounded,system-ui,-apple-system,Segoe UI,Roboto;background:var(--bg);color:var(--ink)}
-.bg-decor{position:fixed;inset:0;pointer-events:none;background:
- radial-gradient(600px 200px at 20% -10%, rgba(255,184,198,.25), transparent),
- radial-gradient(400px 180px at 100% 10%, rgba(166,227,233,.25), transparent),
- radial-gradient(480px 200px at 0% 100%, rgba(255,214,165,.25), transparent)}
-.appbar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;padding:14px 18px}
-.brand{display:flex;align-items:center;gap:10px}.brand .logo{font-size:26px}.brand .sub{color:var(--muted);font-size:14px}
-.chip{height:36px;padding:0 12px;border-radius:999px;border:1px solid #E9E4DF;background:#FFFDFB;cursor:pointer}
-.topbar{position:sticky;top:64px;z-index:4;background:rgba(255,255,255,.6);backdrop-filter:saturate(1.1) blur(6px);border-bottom:1px solid #F0E9E4}
-.topbar .badges{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px}
-.badge{background:#FFF3F6;color:#C05A74;border:1px solid #FFD5E0;border-radius:999px;padding:4px 8px;font-size:12px}
-.topbar .reminder{display:flex;gap:8px;align-items:center;padding:0 16px 10px}
-.input.small{height:34px;border-radius:999px;border:1px solid #E9E4DF;padding:0 12px;background:#FFFCF9}
-main{max-width:980px;margin:0 auto;padding:18px}
-.card{background:#fff;border-radius:20px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,.04);padding:16px;margin:12px 0}
-.hint{color:var(--muted);margin:0}.inputRow{display:flex;gap:8px}.input{flex:1;height:44px;border-radius:999px;border:1px solid #E9E4DF;padding:0 16px;background:#FFFCF9}
-.select{height:38px;border-radius:12px;border:1px solid #E9E4DF;padding:0 8px;background:#FFFCF9}
-.btn{height:44px;padding:0 16px;border:none;border-radius:999px;background:#F5F2F0;color:var(--ink);box-shadow:var(--shadow);cursor:pointer}
-.btn.big{height:52px;padding:0 22px;font-size:18px}.btn.round{width:64px;height:64px;border-radius:999px}
-.btn.primary{background:var(--primary);color:var(--primary-ink)} .btn.ghost{background:#FFF;border:1px solid #F0E9E4;box-shadow:none}
-.btn.pill{height:36px;padding:0 12px;border-radius:999px;font-size:14px}.btn.cute{height:40px;padding:0 14px}
-.media{padding:8px 0} audio,video{width:100%;border-radius:12px;background:#F8F6F4}
-.time{display:flex;align-items:center;justify-content:center;gap:8px;color:#6E6762}.time .bar{height:2px;width:80px;background:#EDE7E2;border-radius:999px}
-.buttons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.tab{border:1px solid #F0E9E4;padding:8px 12px;border-radius:12px;background:#FFF;cursor:pointer}
-.tab.active{background:#FFEEF3;border-color:#FFD5E0;color:#8E3550}
-.pane{display:none}.pane.active{display:block}
-.words{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-.wordcard{padding:10px 12px;border-radius:14px;border:1px solid #E9E4DF;background:#FFF;min-width:200px;box-shadow:var(--shadow)}
-.wordcard .top{display:flex;justify-content:space-between;align-items:center}
-.wordcard .mean{color:#6E6762;margin-top:4px}.wordcard .actions{display:flex;gap:6px;margin-top:8px}
-.review{margin-top:10px;border:1px dashed #E9E4DF;border-radius:14px;padding:10px;background:#FFFCF9;max-height:280px;overflow:auto}
-.list{list-style:none;padding:0;margin:8px 0}.list li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 8px;border-bottom:1px dashed #F0E9E4}
-.ts{font-variant-numeric:tabular-nums;color:#6E6762;background:#FFF3F6;padding:2px 8px;border-radius:999px;border:1px solid #FFD5E0}
-.sub{background:#FFF8F6}.transcript{margin-top:8px;padding:8px;border-radius:12px;border:1px solid #E9E4DF;background:#FFF}.feedback{margin-top:8px;color:#594}
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#f7f6f5;color:#2b2a29;margin:0}
+header{padding:18px 16px 0}h1{margin:0}header .sub{color:#7a7673;margin:6px 0 12px}
+main{max-width:920px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;border:1px solid #eee;box-shadow:0 6px 16px rgba(0,0,0,.05)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.input{height:42px;padding:0 10px;border-radius:10px;border:1px solid #ddd;flex:1}
+.btn{height:42px;padding:0 14px;border:none;border-radius:999px;background:#f0edea;cursor:pointer;user-select:none}
+.btn.primary{background:#ffc8d5}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+.output{min-height:48px;border-radius:10px;border:1px dashed #e5e1de;background:#fffcfb;padding:10px;margin-top:8px;white-space:pre-wrap}
+textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;background:#fffcfb}
