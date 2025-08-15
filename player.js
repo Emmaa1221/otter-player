@@ -62,12 +62,36 @@ memoReviewBtn?.addEventListener('click', ()=>{
 // Words
 const todayWordsBtn=$('#todayWordsBtn'), wordsWrap=$('#todayWords'), wordReviewBtn=$('#wordReviewBtn'), wordReviewEl=$('#wordReview'), recycleChk=$('#wordRecycle');
 let WORDS=[];
+// === Random 3 words each click ===
+async function showRandom3Words(){
+  try{
+    await loadWords();
+    // pick 3 distinct random indices
+    const n = WORDS.length;
+    const picked = new Set();
+    while(picked.size < Math.min(3, n)){
+      picked.add(Math.floor(Math.random()*n));
+    }
+    const today = dayKey();
+    const p = getWProg(); p.days = p.days || {};
+    // overwrite today's set with fresh random 3 and reset done flags
+    p.days[today] = { items: Array.from(picked), done: [] };
+    setWProg(p);
+    renderToday();
+  }catch(e){
+    console.error('showRandom3Words error', e);
+    if (typeof statusEl !== 'undefined' && statusEl) {
+      statusEl.textContent='단어 생성 중 오류'; setTimeout(()=>statusEl.textContent='',3000);
+    }
+  }
+}
+
 async function loadWords(){ if(WORDS.length) return true; try{ const res=await fetch('assets/words_3000.json',{cache:'no-cache'}); if(!res.ok) throw new Error('status '+res.status); WORDS=await res.json(); const overrides=JSON.parse(localStorage.getItem('otter:words:overrides')||'{}'); Object.keys(overrides).forEach(k=>{ const i=parseInt(k,10); if(WORDS[i]) WORDS[i].meaning=overrides[k]; }); return true; }catch(e){ console.error('[WORDS] load failed', e); WORDS=[{"word":"time","meaning":"시간"},{"word":"people","meaning":"사람들"},{"word":"make","meaning":"만들다"}]; return false;} }
 function dayKey(){ return new Date().toISOString().slice(0,10); } function getWProg(){ return JSON.parse(localStorage.getItem('otter:words:progress')||'{}'); } function setWProg(p){ localStorage.setItem('otter:words:progress', JSON.stringify(p)); }
 function pickToday(force=false){ const p=getWProg(); const today=dayKey(); p.days=p.days||{}; if(!force && p.days[today]?.items?.length){ setWProg(p); return p.days[today].items; } const learned=new Set(p.learned||[]); let pool=WORDS.map((w,i)=>({...w,idx:i})).filter(w=>!learned.has(w.idx)); if(recycleChk?.checked && pool.length<3){ pool=WORDS.map((w,i)=>({...w,idx:i})); } const chosen=[]; for(let i=0;i<3&&pool.length;i++){ const j=Math.floor(Math.random()*pool.length); chosen.push(pool.splice(j,1)[0].idx); } p.days[today]={items:chosen,done:[]}; setWProg(p); return chosen; }
 function renderToday(){ const p=getWProg(); const today=dayKey(); const set=p.days?.[today]||{items:[],done:[]}; wordsWrap.innerHTML=''; if(!set.items.length){ wordsWrap.textContent='오늘의 단어가 없습니다. 버튼을 눌러 새로 뽑으세요.'; return; } set.items.forEach(idx=>{ const w=WORDS[idx]||{word:'(없음)',meaning:''}; const done=(set.done||[]).includes(idx); const card=document.createElement('div'); card.className='wordcard'; card.innerHTML=`<div class="top"><strong>${w.word}</strong><label class="switch"><input type="checkbox" ${done?'checked':''}><span>완료</span></label></div><div class="mean">${w.meaning||'(의미 추가 가능)'}</div><div class="actions"><button class="btn pill ghost edit">뜻 편집</button></div>`; const chk=card.querySelector('input[type=checkbox]'); chk.addEventListener('change',()=>{ const p2=getWProg(); const d=(p2.days[today].done||[]); if(chk.checked){ if(!d.includes(idx)) d.push(idx);} else { const k=d.indexOf(idx); if(k>=0) d.splice(k,1);} p2.days[today].done=d; if(d.length>=3){ const L=new Set(p2.learned||[]); set.items.forEach(i=>L.add(i)); p2.learned=[...L]; } setWProg(p2); }); card.querySelector('.edit').addEventListener('click',()=>{ const nv=prompt('뜻을 입력하세요', w.meaning||''); if(nv!=null){ WORDS[idx].meaning=nv; card.querySelector('.mean').textContent=nv||'(의미 추가 가능)'; const ov=JSON.parse(localStorage.getItem('otter:words:overrides')||'{}'); ov[idx]=nv; localStorage.setItem('otter:words:overrides', JSON.stringify(ov)); } }); wordsWrap.appendChild(card); }); }
 async function ensureTodayWords(force=false){ try{ const ok=await loadWords(); pickToday(force); renderToday(); if(!ok){ statusEl.textContent='단어 데이터 로드 실패 → 최소 세트 사용'; setTimeout(()=>statusEl.textContent='',3000);} } catch(e){ console.error('ensureTodayWords', e); statusEl.textContent='단어 로드 중 오류'; setTimeout(()=>statusEl.textContent='',3000);} }
-ensureTodayWords(false); todayWordsBtn?.addEventListener('click', ()=>ensureTodayWords(true));
+ensureTodayWords(false); showRandom3Words(); todayWordsBtn?.addEventListener('click', ()=>showRandom3Words());
 wordReviewBtn?.addEventListener('click', ()=>{ const p=getWProg(); const L=p.learned||[]; wordReviewEl.innerHTML='<h4>배운 단어 리뷰</h4>'+ (L.length?'':'<p class="hint">아직 완료한 단어가 없어요.</p>'); const ov=JSON.parse(localStorage.getItem('otter:words:overrides')||'{}'); L.slice().reverse().forEach(idx=>{ const w=WORDS[idx]||{word:'',meaning:''}; const meaning=ov[idx]??w.meaning; const p=document.createElement('p'); p.innerHTML=`<strong>${w.word}</strong> — ${meaning||'(의미 없음)'}`; wordReviewEl.appendChild(p); }); wordReviewEl.classList.toggle('hidden'); });
 
 // Free Talking
